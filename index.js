@@ -7,7 +7,7 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 8000;
 
 const corsOptions = {
-    origin: 'https://web-chat-client-eosin.vercel.app/', // Allow only your frontend origin
+    origin: 'https://web-chat-client-eosin.vercel.app', // Allow only your frontend origin
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
