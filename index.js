@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
 
             connectedUsers.push({ id: socket.id, name: user });
         }
-        socket.emit("welcome", { message:`Hello, ${user}` });
+        socket.emit("welcome", { message:user });
         // Send existing messages to the newly joined user
         socket.emit("previousMessages", messages);
         const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
