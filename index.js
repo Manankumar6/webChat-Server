@@ -38,19 +38,19 @@ io.on("connection", (socket) => {
         socket.emit("welcome", { message:user });
         // Send existing messages to the newly joined user
         socket.emit("previousMessages", messages);
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        socket.broadcast.emit("userJoined", {date:now, user: "Admin", message: `${users[socket.id]} has joined` });
+       
+        socket.broadcast.emit("userJoined", { user: "Admin", message: `${users[socket.id]} has joined` });
         io.emit("connectedUsers", connectedUsers);
 
     });
 
     socket.on("message", ({ message, id }) => {
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
         const chatMessage = {
             message,
             user: users[id],
             id,
-            date:now
+           
         };
         messages.push(chatMessage); // Store the new message
         io.emit("sendMessage", chatMessage);
@@ -60,8 +60,8 @@ io.on("connection", (socket) => {
         const user = users[socket.id];
         if (user && user.trim()) {
             connectedUsers = connectedUsers.filter(u => u.id !== socket.id);
-            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            socket.broadcast.emit("leave", {date:now, user: "Admin", message: `${user} has left` });
+           
+            socket.broadcast.emit("leave", { user: "Admin", message: `${user} has left` });
             delete users[socket.id];
 
             if (connectedUsers.length === 0) {
