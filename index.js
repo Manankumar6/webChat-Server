@@ -7,7 +7,8 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 8000;
 
 const corsOptions = {
-    origin: 'https://web-chat-client-eosin.vercel.app', // Allow only your frontend origin
+    origin: '*', // Allow only your frontend origin
+    // origin: 'https://web-chat-client-eosin.vercel.app', // Allow only your frontend origin
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
@@ -19,29 +20,48 @@ app.get("/", (req, res) => {
 });
 
 let users = {};
-console.log(users, "all users")
+const messages = [];
+let connectedUsers = [];
+
 // Create a new instance of socket.io and enable CORS
 const io = new Server(server, {
     cors: corsOptions
 });
 
 io.on("connection", (socket) => {
-    console.log("New Connection", socket.id);
-
     socket.on('joined', (user) => {
         users[socket.id] = user;
-        socket.emit("welcome", { message: "Welcome to webChat" })
-        console.log(users, "all users")
-        // Notify all users except the one who just joined
-        socket.broadcast.emit("userJoined", { message: `${users[socket.id]} has joined` });
+        if(user){
+
+            connectedUsers.push({ id: socket.id, name: user });
+        }
+        socket.emit("welcome", { message: "Welcome to webChat" });
+        // Send existing messages to the newly joined user
+        socket.emit("previousMessages", messages);
+        socket.broadcast.emit("userJoined", { user: "Admin", message: `${users[socket.id]} has joined` });
+        io.emit("connectedUsers", connectedUsers); 
+
     });
-    socket.on("message",({message,id})=>{
-        io.emit("sendMessage",{message,user:users[id],id})
-    })
+
+    socket.on("message", ({ message, id }) => {
+        const chatMessage = { message, user: users[id], id };
+        messages.push(chatMessage); // Store the new message
+        io.emit("sendMessage", chatMessage);
+    });
+
     socket.on('disconnect', () => {
-        if (users[socket.id]) {
-            socket.broadcast.emit("leave", { user: "Admin", message: `${users[socket.id]} has left` });
+        const user = users[socket.id];
+        if (user && user.trim()) { 
+            connectedUsers = connectedUsers.filter(u => u.id !== socket.id);
+            socket.broadcast.emit("leave", { user: "Admin", message: `${user} has left` });
             delete users[socket.id];
+            
+            if (connectedUsers.length === 0) {
+                messages.length = 0;
+              
+            }
+            
+            io.emit("connectedUsers", connectedUsers); // Broadcast the updated list
         }
     });
 });
