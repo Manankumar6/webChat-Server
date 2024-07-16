@@ -44,12 +44,13 @@ io.on("connection", (socket) => {
 
     });
 
-    socket.on("message", ({ message, id }) => {
+    socket.on("message", ({ message, id,replyTo }) => {
       
         const chatMessage = {
             message,
             user: users[id],
             id,
+            replyTo
            
         };
         messages.push(chatMessage); // Store the new message
