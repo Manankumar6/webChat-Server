@@ -1,24 +1,32 @@
+require('dotenv').config();
+
 const express = require("express");
 const cors = require('cors');
 const http = require('http');
 const { Server } = require("socket.io");
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/Auth');
+const cookieParser = require('cookie-parser');
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT ;
+
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
 const corsOptions = {
-    origin: '*', // Allow only your frontend origin
-    // origin: 'https://web-chat-client-eosin.vercel.app', // Allow only your frontend origin
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: 'http://localhost:3000', // Replace with your frontend URL during production
+    methods: ['GET', 'POST'], // Add other HTTP methods if needed
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+    credentials: true // Allow credentials (cookies, authorization headers)
 };
-
+connectDB();
 app.use(cors(corsOptions));
-
+app.use('/api/auth', authRoutes);
 app.get("/", (req, res) => {
     res.send("welcome to our chat application");
 });
-
 let users = {};
 const messages = [];
 let connectedUsers = [];
