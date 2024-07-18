@@ -16,7 +16,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
 const corsOptions = {
-    origin: 'http://localhost:3000', // Replace with your frontend URL during production
+    origin: '*', // Replace with your frontend URL during production
     methods: ['GET', 'POST'], // Add other HTTP methods if needed
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
     credentials: true // Allow credentials (cookies, authorization headers)
