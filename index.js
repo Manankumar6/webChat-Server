@@ -37,11 +37,11 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-    socket.on('joined', (user) => {
+    socket.on('joined', ({user,bg}) => {
         users[socket.id] = user;
         if (user) {
 
-            connectedUsers.push({ id: socket.id, name: user });
+            connectedUsers.push({ id: socket.id, name: user, bg });
         }
         socket.emit("welcome", { message:user });
         // Send existing messages to the newly joined user
