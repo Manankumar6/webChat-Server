@@ -9,14 +9,14 @@ const authRoutes = require('./routes/Auth');
 const cookieParser = require('cookie-parser');
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT ;
+const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
 const corsOptions = {
-    origin: '*', // Replace with your frontend URL during production
+    origin: true, // Replace with your frontend URL during production
     methods: ['GET', 'POST'], // Add other HTTP methods if needed
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
     credentials: true // Allow credentials (cookies, authorization headers)
@@ -28,38 +28,65 @@ app.get("/", (req, res) => {
     res.send("welcome to our chat application");
 });
 let users = {};
-const messages = [];
-let connectedUsers = [];
 
+let loginUser = {};
+let connectedLoginUser = []
+const messages = [];
+const loginUserMsg = [];
+let connectedUsers = [];
 // Create a new instance of socket.io and enable CORS
+
 const io = new Server(server, {
     cors: corsOptions
 });
 
 io.on("connection", (socket) => {
-    socket.on('joined', ({user,bg}) => {
-        users[socket.id] = user;
+    // for guest user 
+
+    socket.on('guestJoined', ({ user, bg }) => {
+        users[socket.id] = { user, type: 'guest' };
         if (user) {
 
             connectedUsers.push({ id: socket.id, name: user, bg });
         }
-        socket.emit("welcome", { message:user });
+        socket.emit("welcome", { message: user });
         // Send existing messages to the newly joined user
         socket.emit("previousMessages", messages);
-       
-        socket.broadcast.emit("userJoined", { user: "Admin", message: `${users[socket.id]} has joined` });
+
+        socket.broadcast.emit("guestUserJoined", { user: "Admin", message: `${users[socket.id].user} has joined` });
         io.emit("connectedUsers", connectedUsers);
 
     });
 
-    socket.on("message", ({ message, id,replyTo }) => {
-      
+    // for login users 
+    socket.on("login", ({username,bg}) => {
+        loginUser[socket.id] = { username, type: "login" }
+
+        if (username) {
+           
+                // Add the new user to the connected login users list
+                connectedLoginUser.push({ id: socket.id, name: username,bg });
+          
+        }
+        console.log(connectedLoginUser)
+        socket.broadcast.emit("userjoin", { user: "Admin", message: `${loginUser[socket.id].username} has joined` })
+
+        io.emit('connectedUser', connectedLoginUser)
+
+    })
+
+
+
+
+    socket.on("message", ({ message, id, replyTo }) => {
+
         const chatMessage = {
             message,
             user: users[id],
+            loginUser:loginUser[id],
             id,
             replyTo
-           
+
         };
         messages.push(chatMessage); // Store the new message
         io.emit("sendMessage", chatMessage);
@@ -67,9 +94,9 @@ io.on("connection", (socket) => {
 
     socket.on('disconnect', () => {
         const user = users[socket.id];
-        if (user && user.trim()) {
+        if (user) {
             connectedUsers = connectedUsers.filter(u => u.id !== socket.id);
-           
+
             socket.broadcast.emit("leave", { user: "Admin", message: `${user} has left` });
             delete users[socket.id];
 
@@ -79,6 +106,15 @@ io.on("connection", (socket) => {
             }
 
             io.emit("connectedUsers", connectedUsers); // Broadcast the updated list
+        }
+           // Handle login user disconnect
+        if (loginUser[socket.id]) {
+            const user = loginUser[socket.id];
+            connectedLoginUser = connectedLoginUser.filter(u => u.id !== socket.id);
+            socket.broadcast.emit("leave", { user: "Admin", message: `${user.username} has left` });
+            delete loginUser[socket.id];
+
+            io.emit('connectedUser', connectedLoginUser);  // Broadcast updated connected login users list
         }
     });
 });
