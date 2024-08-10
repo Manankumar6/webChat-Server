@@ -6,6 +6,7 @@ const http = require('http');
 const { Server } = require("socket.io");
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/Auth');
+const friendRoutes = require("./routes/Friends")
 const cookieParser = require('cookie-parser');
 const app = express();
 const server = http.createServer(app);
@@ -24,6 +25,7 @@ const corsOptions = {
 connectDB();
 app.use(cors(corsOptions));
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', friendRoutes);
 app.get("/", (req, res) => {
     res.send("welcome to our chat application");
 });

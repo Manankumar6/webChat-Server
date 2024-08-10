@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
     fullName: { type: String, required: true },
     userName: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 });
 
 userSchema.pre('save', async function (next) {
