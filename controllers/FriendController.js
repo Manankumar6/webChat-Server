@@ -10,7 +10,7 @@ const addFriend = async (req,res)=>{
     // console.log('User ID:', userId);  
         // Find the user who is adding the friend
         const user = await User.findById(userId);
-        console.log(user)
+      
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }

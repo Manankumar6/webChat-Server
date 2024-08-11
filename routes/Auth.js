@@ -7,6 +7,6 @@ router.post('/signup', register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/check',authMiddleware, checkAuth);
-router.get('/getallusers',getAllUser);
+router.get('/getallusers',authMiddleware,getAllUser);
 
 module.exports = router;

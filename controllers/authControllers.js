@@ -61,11 +61,14 @@ const checkAuth = async (req, res) => {
 
 const getAllUser  = async (req,res)=>{
     try {
+        const loggedInUserId = req.user.id;
         const users = await User.find({})
+        const filteredUsers = users.filter(user => user._id.toString() !== loggedInUserId);
       
-        res.status(200).json({success:true,users})
+        res.status(200).json({ success: true, users: filteredUsers });
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).json({ success: false, message: "An error occurred while fetching users." });
     }
 }
 

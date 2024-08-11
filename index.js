@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
                 connectedLoginUser.push({ id: socket.id, name: username,bg });
           
         }
-        console.log(connectedLoginUser)
+        
         socket.broadcast.emit("userjoin", { user: "Admin", message: `${loginUser[socket.id].username} has joined` })
 
         io.emit('connectedUser', connectedLoginUser)
