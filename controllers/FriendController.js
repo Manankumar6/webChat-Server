@@ -65,7 +65,7 @@ const deleteFriend = async (req,res)=>{
 
 const getAllFriends = async (req,res)=>{
     try {
-        const { userId } = req.params;
+        const userId = req.user._id;
 
         // Find the user and populate the friends list
         const user = await User.findById(userId).populate('friends', 'fullName userName');

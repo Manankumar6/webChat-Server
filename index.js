@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
 
 
 
-    socket.on("message", ({ message, id, replyTo }) => {
+    socket.on("message", ({ message, id, replyTo ,receiverId}) => {
 
         const chatMessage = {
             message,
@@ -91,7 +91,12 @@ io.on("connection", (socket) => {
 
         };
         messages.push(chatMessage); // Store the new message
-        io.emit("sendMessage", chatMessage);
+        const receiverSocketId = loginUser[receiverId];
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('sendMessage', chatMessage);
+        } else {
+            console.log(`User ${receiverId} is not connected`);
+        }
     });
 
     socket.on('disconnect', () => {
