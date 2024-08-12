@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
 const corsOptions = {
     origin: true, // Replace with your frontend URL during production
-    methods: ['GET', 'POST'], // Add other HTTP methods if needed
+    methods: ['GET', 'POST','DELETE'], // Add other HTTP methods if needed
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
     credentials: true // Allow credentials (cookies, authorization headers)
 };

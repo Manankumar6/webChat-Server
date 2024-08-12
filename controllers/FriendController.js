@@ -5,10 +5,6 @@ const addFriend = async (req,res)=>{
     try {
         const { friendId } = req.params; 
         const userId = req.user._id; // Get the friendId from the URL
-    //    console.log(req.user) // Get userId from the request body, if sent
-    //     console.log('Friend ID:', friendId);
-    // console.log('User ID:', userId);  
-        // Find the user who is adding the friend
         const user = await User.findById(userId);
       
         if (!user) {
@@ -36,10 +32,12 @@ const addFriend = async (req,res)=>{
     }
 }
 
-const deleteFriend = async (req,res)=>{
+const removeFriend = async (req,res)=>{
     try {
-        const { userId } = req.params;
-        const { friendId } = req.body; // Assuming friendId is sent in the request body
+        
+        const userId = req.user._id;
+        const { friendId } = req.params; // Assuming friendId is sent in the request body
+        
 
         // Find the user
         const user = await User.findById(userId);
@@ -80,4 +78,4 @@ const getAllFriends = async (req,res)=>{
     }
 }
 
-module.exports = {addFriend,getAllFriends,deleteFriend}
+module.exports = {addFriend,getAllFriends,removeFriend}
