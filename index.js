@@ -46,7 +46,7 @@ io.on("connection", (socket) => {
     // for guest user 
 
     socket.on('guestJoined', ({ user, bg }) => {
-        users[socket.id] = { user, type: 'guest' };
+        users[socket.id] = user;
         if (user) {
 
             connectedUsers.push({ id: socket.id, name: user, bg });
@@ -55,23 +55,19 @@ io.on("connection", (socket) => {
         // Send existing messages to the newly joined user
         socket.emit("previousMessages", messages);
 
-        socket.broadcast.emit("guestUserJoined", { user: "Admin", message: `${users[socket.id].user} has joined` });
+        socket.broadcast.emit("guestUserJoined", { user: "Admin", message: `${users[socket.id]} has joined` });
         io.emit("connectedUsers", connectedUsers);
 
     });
 
     // for login users 
     socket.on("login", ({username,bg}) => {
-        loginUser[socket.id] = { username, type: "login" }
-
+        loginUser[socket.id] =  username;
         if (username) {
-           
-                // Add the new user to the connected login users list
-                connectedLoginUser.push({ id: socket.id, name: username,bg });
-          
-        }
+             connectedLoginUser.push({ id: socket.id, name: username,bg });
+          }
         
-        socket.broadcast.emit("userjoin", { user: "Admin", message: `${loginUser[socket.id].username} has joined` })
+        socket.broadcast.emit("userjoin", { user: "Admin", message: `${loginUser[socket.id]} has joined` })
 
         io.emit('connectedUser', connectedLoginUser)
 
@@ -80,24 +76,31 @@ io.on("connection", (socket) => {
 
 
 
-    socket.on("message", ({ message, id, replyTo ,receiverId}) => {
-
+    socket.on("message", ({ message, id, replyTo }) => {
+     
         const chatMessage = {
             message,
             user: users[id],
-            loginUser:loginUser[id],
             id,
             replyTo
 
         };
         messages.push(chatMessage); // Store the new message
-        const receiverSocketId = loginUser[receiverId];
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit('sendMessage', chatMessage);
-        } else {
-            console.log(`User ${receiverId} is not connected`);
-        }
+        
+        io.emit('sendMessage', chatMessage);
+       
     });
+
+    socket.on("login_user_msg",({message,id})=>{
+        console.log(message,id)
+        const chatMessage = {
+            message,
+            loginUser: loginUser[id],
+            id,
+          };
+          loginUserMsg.push(chatMessage)
+          io.emit("receiveMsg",chatMessage)
+    })
 
     socket.on('disconnect', () => {
         const user = users[socket.id];
