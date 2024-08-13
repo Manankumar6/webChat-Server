@@ -33,7 +33,7 @@ const login = async (req, res) => {
 
         if (comparePassword) {
             const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-            res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 }); // Set cookie for 24 hours
+            res.cookie('token', token, { httpOnly: true, sameSite: 'None', secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 }); // Set cookie for 24 hours
             res.status(200).json({ user });
         } else {
             return res.status(401).json({ message: 'Invalid credentials' });

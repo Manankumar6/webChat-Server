@@ -18,8 +18,8 @@ app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
 const corsOptions = {
     origin: true, // Replace with your frontend URL during production
-    methods: ['GET', 'POST','DELETE'], // Add other HTTP methods if needed
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+    methods: ['GET', 'POST', 'DELETE'], // Add other HTTP methods if needed
+    // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
     credentials: true // Allow credentials (cookies, authorization headers)
 };
 connectDB();
@@ -61,15 +61,16 @@ io.on("connection", (socket) => {
     });
 
     // for login users 
-    socket.on("login", ({username,bg}) => {
-        loginUser[socket.id] =  username;
+    socket.on("login", ({ username, bg }) => {
+        loginUser[socket.id] = username;
         if (username) {
-             connectedLoginUser.push({ id: socket.id, name: username,bg });
-          }
-        
+            connectedLoginUser.push({ id: socket.id, name: username, bg });
+        }
+
         socket.broadcast.emit("userjoin", { user: "Admin", message: `${loginUser[socket.id]} has joined` })
 
         io.emit('connectedUser', connectedLoginUser)
+        
 
     })
 
@@ -77,7 +78,7 @@ io.on("connection", (socket) => {
 
 
     socket.on("message", ({ message, id, replyTo }) => {
-     
+
         const chatMessage = {
             message,
             user: users[id],
@@ -86,21 +87,28 @@ io.on("connection", (socket) => {
 
         };
         messages.push(chatMessage); // Store the new message
-        
+
         io.emit('sendMessage', chatMessage);
-       
+
     });
 
-    socket.on("login_user_msg",({message,id})=>{
-        console.log(message,id)
+    socket.on("login_user_msg", ({roomName, message, id }) => {
+        console.log(message, id)
         const chatMessage = {
             message,
             loginUser: loginUser[id],
             id,
-          };
-          loginUserMsg.push(chatMessage)
-          io.emit("receiveMsg",chatMessage)
+        };
+        loginUserMsg.push(chatMessage)
+        io.emit("receiveMsg", chatMessage)
+        io.to(roomName).emit("receiveMessage", { message, id });
     })
+    socket.on("joinRoom", ({ userId, selectedUserId }) => {
+        const roomName = [userId, selectedUserId].sort().join("-"); // Generate a unique room name
+        socket.join(roomName); // Join the room
+        socket.emit("joinedRoom", roomName); // Notify the user they have joined the room
+        console.log(`User ${userId} joined room: ${roomName}`);
+    });
 
     socket.on('disconnect', () => {
         const user = users[socket.id];
@@ -117,7 +125,7 @@ io.on("connection", (socket) => {
 
             io.emit("connectedUsers", connectedUsers); // Broadcast the updated list
         }
-           // Handle login user disconnect
+        // Handle login user disconnect
         if (loginUser[socket.id]) {
             const user = loginUser[socket.id];
             connectedLoginUser = connectedLoginUser.filter(u => u.id !== socket.id);
